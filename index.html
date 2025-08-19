@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz-Spiel</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+    }
+
+    .antwort-button {
+      display: block;
+      width: 50%;
+      margin: 5px auto;
+      padding: 10px;
+      cursor: pointer;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .ausgewaehlt {
+      background-color: #cdeffd;
+    }
+
+    .richtig {
+      background-color: lightgreen;
+    }
+
+    .falsch {
+      background-color: salmon;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    #ergebnis {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Quiz-Spiel</h1>
+  <div id="quiz-container"></div>
+
+  <div class="button-container">
+    <button id="prev-btn" style="display: none;">⬅ Letzte Frage</button>
+    <button id="submit-btn" style="display: none;">Antwort einreichen</button>
+    <button id="next-btn" style="display: none;">Nächste Frage ➡</button>
+  </div>
+
+  <div id="ergebnis"></div>
+
+  <script>
+    const fragen = [
+      {
+        frage: "Stakeholders can interact with the Scrum team in which two ways?",
+        antworten: [
+          "At the Sprint Revlew",
+          "At the Daily Scrum",
+          "Via interactions with the Product Owner",
+          "At the Sprint Retrospective"
+        ],
+        richtigeAntwort: [1, 3]
+      },
+      {
+        frage: "Which of the following reflects Scrum's expectation of 'validated learning'?",
+        antworten: [
+          "Customer feedback after frequent releases",
+          "Sprint Planning",
+          "Predictive Planning",
+          "Sprint 0"
+        ],
+        richtigeAntwort: [1]
+      },
+      {
+        frage: "What is the purpose of using a Sprint burndown chart in Scrum?",
+        antworten: [
+          "To manage progress against the Product Backlog",
+          "To track work remaining in the Sprint",
+          "To manage hours per task per team member",
+          "To perform release planning"
+        ],
+        richtigeAntwort: [2]
+      },
+      {
+        frage: "The Product Backlog should be transparent to the entire organization.",
+        antworten: ["True", "False"],
+        richtigeAntwort: [1]
+      },
+      {
+        frage: "When the Developers are having trouble delivering a working Increment because they don't understand a functional requirement, what should they do?",
+        antworten: [
+          "Defer the work to a more appropriate Sprint.",
+          "Add a specialist to the Developers.",
+          "Partially complete the functionality and discuss the remaining work at the Sprint Review.",
+          "Collaborate with the Product Owner to determine what is possible and acceptable."
+        ],
+        richtigeAntwort: [3]
+      },
+      {
+        frage: "When does backlog refinement occur?",
+        antworten: [
+          "Between Sprints",
+          "In Sprint 0",
+          "During the Sprint, in preparation for the next Sprint(s)",
+          "In Sprint Planning"
+        ],
+        richtigeAntwort: [2]
+      },
+      {
+        frage: "Which is NOT a Scrum Role?",
+        antworten: [
+          "Product Owner",
+          "Team Member",
+          "Project Manager",
+          "Scrum Master"
+        ],
+        richtigeAntwort: [2]
+      },
+      {
+        frage: "For a one-month Sprint, what is the maximum duration of the Sprint Planning meeting?",
+        antworten: [
+          "8 hours",
+          "4 hours",
+          "3 hours",
+          "Decided by the Team"
+        ],
+        richtigeAntwort: [0]
+      }, {
+        frage: "The Developers are more focused with a specific goal.",
+        antworten: [
+          "A Sprint Goal only gives purpose to Sprint 0.",
+          "A Sprint Goal ensures that all the Product Backlog items selected for the Sprint are implemented.",
+          "The Developers are more focused with a specific goal.",
+          "Sprint Goals are not valuable, Everything is known from the Product Backlog."
+        ],
+        richtigeAntwort: [2]
+      }, {
+        frage: " In which meeting do you capture lessons learned?",
+        antworten: [
+          "Sprint Planning",
+          "Sprint Review",
+          "Sprint Retrospective",
+          "Daily Status Meeting"
+        ],
+        richtigeAntwort: [2]
+      }
+    ];
+
+    let aktuelleFrage = 0;
+    let punktzahl = 0;
+    let ausgewaehlteAntworten = [];
+
+    const quizContainer = document.getElementById("quiz-container");
+    const submitBtn = document.getElementById("submit-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const prevBtn = document.getElementById("prev-btn");
+    const ergebnisDiv = document.getElementById("ergebnis");
+
+    function frageAnzeigen() {
+      const frage = fragen[aktuelleFrage];
+      ausgewaehlteAntworten = [];
+
+      quizContainer.innerHTML = `<h3>${frage.frage}</h3>`;
+
+      frage.antworten.forEach((antwort, index) => {
+        const button = document.createElement("div");
+        button.className = "antwort-button";
+        button.textContent = antwort;
+        button.setAttribute("data-index", index);
+        button.onclick = () => antwortAuswaehlen(index, button);
+        quizContainer.appendChild(button);
+      });
+
+      submitBtn.style.display = "inline-block";
+      submitBtn.disabled = false;
+      nextBtn.style.display = "none";
+      prevBtn.style.display = aktuelleFrage > 0 ? "inline-block" : "none";
+    }
+
+    function antwortAuswaehlen(index, button) {
+      const alreadySelected = ausgewaehlteAntworten.includes(index);
+
+      if (alreadySelected) {
+        ausgewaehlteAntworten = ausgewaehlteAntworten.filter(i => i !== index);
+        button.classList.remove("ausgewaehlt");
+      } else {
+        ausgewaehlteAntworten.push(index);
+        button.classList.add("ausgewaehlt");
+      }
+    }
+
+    function antwortBewerten() {
+      const frage = fragen[aktuelleFrage];
+      const richtigeAntworten = frage.richtigeAntwort;
+      const buttons = document.querySelectorAll(".antwort-button");
+      let korrekt = false;
+
+      if (
+        ausgewaehlteAntworten.length === richtigeAntworten.length &&
+        ausgewaehlteAntworten.every(ans => richtigeAntworten.includes(ans))
+      ) {
+        punktzahl++;
+        korrekt = true;
+      }
+
+      buttons.forEach((btn, i) => {
+        btn.onclick = null;
+
+        if (richtigeAntworten.includes(i)) {
+          btn.classList.add("richtig");
+        }
+
+        if (ausgewaehlteAntworten.includes(i) && !richtigeAntworten.includes(i)) {
+          btn.classList.add("falsch");
+        }
+      });
+
+      quizContainer.innerHTML += `<p>${korrekt ? "✅ Richtig!" : "❌ Falsch!"}</p>`;
+      submitBtn.style.display = "none";
+      nextBtn.style.display = "inline-block";
+    }
+
+    function naechsteFrage() {
+      aktuelleFrage++;
+      if (aktuelleFrage < fragen.length) {
+        frageAnzeigen();
+      } else {
+        quizEnde();
+      }
+    }
+
+    function letzteFrage() {
+      if (aktuelleFrage > 0) {
+        aktuelleFrage--;
+        frageAnzeigen();
+      }
+    }
+
+    function quizEnde() {
+      quizContainer.innerHTML = "";
+      ergebnisDiv.innerHTML = `<h3>🏁 Quiz beendet! Punktzahl: ${punktzahl}/${fragen.length}</h3>`;
+      submitBtn.style.display = "none";
+      nextBtn.style.display = "none";
+      prevBtn.style.display = "none";
+    }
+
+    submitBtn.addEventListener("click", antwortBewerten);
+    nextBtn.addEventListener("click", naechsteFrage);
+    prevBtn.addEventListener("click", letzteFrage);
+
+    frageAnzeigen();
+  </script>
+</body>
+</html>
